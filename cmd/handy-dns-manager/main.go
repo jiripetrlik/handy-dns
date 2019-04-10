@@ -8,14 +8,6 @@ import (
 	"strconv"
 )
 
-type ZoneItem struct {
-	Id       int64
-	Name     string
-	Class    string
-	ItemType string
-	Data     string
-}
-
 func createTestItemsList() []ZoneItem {
 	item1 := ZoneItem{
 		1,
@@ -62,7 +54,7 @@ func endpointCreateItem(writer http.ResponseWriter, request *http.Request) {
 func endpointUpdateItem(writer http.ResponseWriter, request *http.Request) {
 	var item ZoneItem
 
-	item.Id, _ = strconv.ParseInt(request.URL.Query().Get("id"), 10, 64)
+	item.ID, _ = strconv.ParseInt(request.URL.Query().Get("id"), 10, 64)
 	item.Name = request.URL.Query().Get("name")
 	item.Class = request.URL.Query().Get("class")
 	item.ItemType = request.URL.Query().Get("itemType")
