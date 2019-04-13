@@ -7,6 +7,12 @@ import (
 	"os"
 )
 
+type DNSZone struct {
+	ZoneName string
+	ZoneFile string
+	ZoneData string
+}
+
 type ZoneItem struct {
 	ID       int64
 	Name     string
@@ -15,22 +21,33 @@ type ZoneItem struct {
 	Data     string
 }
 
-func readZoneFile(fileName string) []ZoneItem {
+func (z *DNSZone) Initialize() {
+	_, err := os.Stat(z.ZoneData)
+	if os.IsNotExist(err) {
+		zoneItems := []ZoneItem{}
+		z.WriteZoneFile(zoneItems)
+	}
+	z.ExportZoneFile()
+}
+
+func (z *DNSZone) ReadZoneFile() []ZoneItem {
 	var zoneItems []ZoneItem
-	data, _ := ioutil.ReadFile(fileName)
+	data, _ := ioutil.ReadFile(z.ZoneData)
 	json.Unmarshal(data, &zoneItems)
 
 	return zoneItems
 }
 
-func writeZoneFile(zoneItems []ZoneItem, fileName string) {
+func (z *DNSZone) WriteZoneFile(zoneItems []ZoneItem) {
 	data, _ := json.Marshal(zoneItems)
-	ioutil.WriteFile(fileName, data, 0664)
+	ioutil.WriteFile(z.ZoneData, data, 0664)
 }
 
-func exportZoneFile(zoneItems []ZoneItem, fileName string) {
+func (z *DNSZone) ExportZoneFile() {
+	zoneItems := z.ReadZoneFile()
+
 	file, _ := os.OpenFile(
-		fileName,
+		z.ZoneFile,
 		os.O_WRONLY|os.O_TRUNC|os.O_CREATE,
 		0664,
 	)

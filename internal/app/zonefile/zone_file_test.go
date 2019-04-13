@@ -7,6 +7,27 @@ import (
 	"testing"
 )
 
+func tmpFile(prefix string) string {
+	file, _ := ioutil.TempFile("", prefix)
+	file.Close()
+
+	return file.Name()
+}
+
+func createTestDNSZone() DNSZone {
+	var dnsZone DNSZone
+	dnsZone.ZoneName = "test-domain"
+	dnsZone.ZoneFile = tmpFile("test-zone-file-")
+	dnsZone.ZoneData = tmpFile("test-zone-data-")
+
+	return dnsZone
+}
+
+func deleteTestDNSZone(zone *DNSZone) {
+	os.Remove(zone.ZoneFile)
+	os.Remove(zone.ZoneData)
+}
+
 func createTestItemsList() []ZoneItem {
 	item1 := ZoneItem{
 		1,
@@ -26,27 +47,26 @@ func createTestItemsList() []ZoneItem {
 }
 
 func TestWriteReadZoneFile(t *testing.T) {
-	file, _ := ioutil.TempFile("", "test-zone-file-")
-	defer os.Remove(file.Name())
-	file.Close()
+	dnsZone := createTestDNSZone()
+	defer deleteTestDNSZone(&dnsZone)
 
 	itemsList := createTestItemsList()
-	writeZoneFile(itemsList, file.Name())
-	itemsList2 := readZoneFile(file.Name())
+	dnsZone.WriteZoneFile(itemsList)
+	itemsList2 := dnsZone.ReadZoneFile()
 	if len(itemsList2) != 2 {
 		t.Error("Loaded items list should have 2 items")
 	}
 }
 
 func TestExportZoneFile(t *testing.T) {
-	file, _ := ioutil.TempFile("", "test-export-zone-file-")
-	file.Close()
-	defer os.Remove(file.Name())
+	dnsZone := createTestDNSZone()
+	defer deleteTestDNSZone(&dnsZone)
 
 	itemsList := createTestItemsList()
-	exportZoneFile(itemsList, file.Name())
+	dnsZone.WriteZoneFile(itemsList)
+	dnsZone.ExportZoneFile()
 
-	data, _ := ioutil.ReadFile(file.Name())
+	data, _ := ioutil.ReadFile(dnsZone.ZoneFile)
 	content := string(data)
 	if strings.Contains(content, "text1") == false || strings.Contains(content, "text2") == false {
 		t.Error("Zone file does not contain all required strings(text1, text2)")

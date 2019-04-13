@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/jiripetrlik/handy-dns/internal/app/rest"
+	"github.com/jiripetrlik/handy-dns/internal/app/zonefile"
 )
 
 func main() {
@@ -15,12 +16,23 @@ func main() {
 	flag.Parse()
 
 	log.Printf(
-		"Starint handy-dns-manager for domain %v. Zonefile=%v and zone data=%v",
+		"Starting handy-dns-manager for domain %v. Zonefile=%v and zone data=%v",
 		*zoneNamePtr,
 		*zoneFilePtr,
 		*zoneDataPtr,
 	)
 
-	rest.HandleRestAPI()
+	dnsZone := zonefile.DNSZone{
+		*zoneNamePtr,
+		*zoneFilePtr,
+		*zoneDataPtr,
+	}
+	dnsZone.Initialize()
+
+	restServer := rest.HandyDnsRestServer{
+		&dnsZone,
+	}
+
+	restServer.HandleRestAPI()
 	http.ListenAndServe(":8080", nil)
 }
