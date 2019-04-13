@@ -1,9 +1,9 @@
 FROM golang:1.12-alpine as builder
 
-WORKDIR /go/src/handy-dns
+WORKDIR /go/src/github.com/jiripetrlik/handy-dns
 COPY . .
 
-RUN go install -v ./cmd/handy-dns-manager
+RUN go install -v github.com/jiripetrlik/handy-dns/cmd/handy-dns-manager
 
 FROM alpine:latest
 

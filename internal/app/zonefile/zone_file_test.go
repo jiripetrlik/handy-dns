@@ -1,4 +1,4 @@
-package main
+package zonefile
 
 import (
 	"io/ioutil"
@@ -6,6 +6,24 @@ import (
 	"strings"
 	"testing"
 )
+
+func createTestItemsList() []ZoneItem {
+	item1 := ZoneItem{
+		1,
+		"text1",
+		"IN",
+		"NS",
+		"127.0.0.1"}
+	item2 := ZoneItem{
+		2,
+		"text2",
+		"IN",
+		"A",
+		"127.0.0.2"}
+	items := []ZoneItem{item1, item2}
+
+	return items
+}
 
 func TestWriteReadZoneFile(t *testing.T) {
 	file, _ := ioutil.TempFile("", "test-zone-file-")
