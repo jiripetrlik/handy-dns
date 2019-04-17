@@ -5,29 +5,30 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/jiripetrlik/handy-dns/internal/app/dnszone"
 	"github.com/jiripetrlik/handy-dns/internal/app/rest"
-	"github.com/jiripetrlik/handy-dns/internal/app/zonefile"
 )
 
 func main() {
-	zoneNamePtr := flag.String("n", "example-domain", "Domain name")
-	zoneFilePtr := flag.String("f", "example-domain.hosts", "Zone file")
+	originPtr := flag.String("o", "example-domain.", "Domain origin")
+	primaryNameServerPtr := flag.String("p", "ns1.example-domain.", "Primary name server")
+	emailPtr := flag.String("e", "email.example-domain.", "Hostmaster email")
+	dnszonePtr := flag.String("f", "example-domain.hosts", "Zone file")
 	zoneDataPtr := flag.String("d", "example-domain.json", "Data about zone")
 	flag.Parse()
 
 	log.Printf(
-		"Starting handy-dns-manager for domain %v. Zonefile=%v and zone data=%v",
-		*zoneNamePtr,
-		*zoneFilePtr,
+		"Starting handy-dns-manager for domain %v. dnszone=%v and zone data=%v",
+		*originPtr,
+		*dnszonePtr,
 		*zoneDataPtr,
 	)
 
-	dnsZone := zonefile.DNSZone{
-		*zoneNamePtr,
-		*zoneFilePtr,
+	dnsZone := dnszone.DNSZone{
+		*dnszonePtr,
 		*zoneDataPtr,
 	}
-	dnsZone.Initialize()
+	dnsZone.Initialize(*originPtr, *primaryNameServerPtr, *emailPtr)
 
 	restServer := rest.HandyDnsRestServer{
 		&dnsZone,

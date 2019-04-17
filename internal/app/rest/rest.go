@@ -7,15 +7,15 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/jiripetrlik/handy-dns/internal/app/zonefile"
+	"github.com/jiripetrlik/handy-dns/internal/app/dnszone"
 )
 
 type HandyDnsRestServer struct {
-	DNSZone *zonefile.DNSZone
+	DNSZone *dnszone.DNSZone
 }
 
 func (s *HandyDnsRestServer) endpointListItems(writer http.ResponseWriter, request *http.Request) {
-	itemsList := s.DNSZone.ReadZoneFile()
+	itemsList := s.DNSZone.GetZoneData().ZoneItems
 	itemsListJSON, _ := json.Marshal(itemsList)
 
 	writer.Header().Set("Content-Type", "text/json")
@@ -24,39 +24,30 @@ func (s *HandyDnsRestServer) endpointListItems(writer http.ResponseWriter, reque
 }
 
 func (s *HandyDnsRestServer) endpointCreateItem(writer http.ResponseWriter, request *http.Request) {
-	itemsList := s.DNSZone.ReadZoneFile()
+	item := dnszone.ZoneItem{
+		ID:       0,
+		Name:     request.URL.Query().Get("name"),
+		Class:    request.URL.Query().Get("class"),
+		ItemType: request.URL.Query().Get("itemType"),
+		Data:     request.URL.Query().Get("data"),
+	}
 
-	var item zonefile.ZoneItem
-	item.ID = nextID(itemsList)
-	item.Name = request.URL.Query().Get("name")
-	item.Class = request.URL.Query().Get("class")
-	item.ItemType = request.URL.Query().Get("itemType")
-	item.Data = request.URL.Query().Get("data")
-
-	itemsList = append(itemsList, item)
-	s.DNSZone.WriteZoneFile(itemsList)
-	s.DNSZone.ExportZoneFile()
-
-	jsonID, _ := json.Marshal(item.ID)
-	writer.Header().Set("Content-Type", "text/json")
-	io.WriteString(writer, string(jsonID))
+	s.DNSZone.AddZoneItem(item)
 
 	log.Printf("Item %v was created with id %v", item, item.ID)
 }
 
 func (s *HandyDnsRestServer) endpointUpdateItem(writer http.ResponseWriter, request *http.Request) {
-	itemsList := s.DNSZone.ReadZoneFile()
 	id, _ := strconv.ParseInt(request.URL.Query().Get("id"), 10, 64)
-	_, item := findItem(id, itemsList)
+	item := dnszone.ZoneItem{
+		ID:       id,
+		Name:     request.URL.Query().Get("name"),
+		Class:    request.URL.Query().Get("class"),
+		ItemType: request.URL.Query().Get("itemType"),
+		Data:     request.URL.Query().Get("data"),
+	}
 
-	item.ID, _ = strconv.ParseInt(request.URL.Query().Get("id"), 10, 64)
-	item.Name = request.URL.Query().Get("name")
-	item.Class = request.URL.Query().Get("class")
-	item.ItemType = request.URL.Query().Get("itemType")
-	item.Data = request.URL.Query().Get("data")
-
-	s.DNSZone.WriteZoneFile(itemsList)
-	s.DNSZone.ExportZoneFile()
+	s.DNSZone.UpdateZoneItem(item)
 
 	jsonItem, _ := json.Marshal(item)
 	writer.Header().Set("Content-Type", "text/json")
@@ -66,17 +57,9 @@ func (s *HandyDnsRestServer) endpointUpdateItem(writer http.ResponseWriter, requ
 }
 
 func (s *HandyDnsRestServer) endpointDeleteItem(writer http.ResponseWriter, request *http.Request) {
-	itemsList := s.DNSZone.ReadZoneFile()
 	id, _ := strconv.ParseInt(request.URL.Query().Get("id"), 10, 64)
-	index, _ := findItem(id, itemsList)
 
-	itemsList = append(itemsList[:index], itemsList[index+1:]...)
-	s.DNSZone.WriteZoneFile(itemsList)
-	s.DNSZone.ExportZoneFile()
-
-	jsonID, _ := json.Marshal(id)
-	writer.Header().Set("Content-Type", "text/json")
-	io.WriteString(writer, string(jsonID))
+	s.DNSZone.DeleteZoneItem(id)
 
 	log.Printf("Item %v was deleted", id)
 }
@@ -86,30 +69,4 @@ func (s *HandyDnsRestServer) HandleRestAPI() {
 	http.HandleFunc("/api/create", s.endpointCreateItem)
 	http.HandleFunc("/api/update", s.endpointUpdateItem)
 	http.HandleFunc("/api/delete", s.endpointDeleteItem)
-}
-
-func nextID(zoneItems []zonefile.ZoneItem) int64 {
-	var max int64 = 0
-
-	for _, item := range zoneItems {
-		if item.ID > max {
-			max = item.ID
-		}
-	}
-
-	return max + 1
-}
-
-func findItem(id int64, zoneItems []zonefile.ZoneItem) (int, *zonefile.ZoneItem) {
-	var index int
-	var foundItem *zonefile.ZoneItem
-
-	for i, item := range zoneItems {
-		if item.ID == id {
-			index = i
-			foundItem = &zoneItems[i]
-		}
-	}
-
-	return index, foundItem
 }
