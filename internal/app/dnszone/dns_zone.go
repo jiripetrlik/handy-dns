@@ -12,10 +12,10 @@ type DNSZone struct {
 	ZoneDataFile string
 }
 
-func (z *DNSZone) Initialize(origin string, primaryNameServer string, hostmasterEmail string) {
+func (z *DNSZone) Initialize(ip string, origin string, primaryNameServer string, hostmasterEmail string) {
 	_, err := os.Stat(z.ZoneDataFile)
 	if os.IsNotExist(err) {
-		dnsZoneDataDNSZoneData := NewDNSZoneData(origin, primaryNameServer, hostmasterEmail)
+		dnsZoneDataDNSZoneData := NewDNSZoneData(ip, origin, primaryNameServer, hostmasterEmail)
 		z.writeZoneData(dnsZoneDataDNSZoneData)
 	}
 	z.writeZoneFile()
@@ -84,6 +84,7 @@ func (z *DNSZone) writeZoneFile() {
 	)
 	defer file.Close()
 
+	file.WriteString(zoneData.zoneFileHeader())
 	for _, item := range zoneData.ZoneItems {
 		fmt.Fprintf(
 			file,

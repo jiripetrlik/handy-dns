@@ -10,8 +10,9 @@ import (
 )
 
 func main() {
+	ipPtr := flag.String("i", "127.0.0.1", "IP of primary nameserver")
 	originPtr := flag.String("o", "example-domain.", "Domain origin")
-	primaryNameServerPtr := flag.String("p", "ns1.example-domain.", "Primary name server")
+	primaryNameServerPtr := flag.String("p", "ns1", "Primary name server")
 	emailPtr := flag.String("e", "email.example-domain.", "Hostmaster email")
 	dnszonePtr := flag.String("f", "example-domain.hosts", "Zone file")
 	zoneDataPtr := flag.String("d", "example-domain.json", "Data about zone")
@@ -28,7 +29,7 @@ func main() {
 		*dnszonePtr,
 		*zoneDataPtr,
 	}
-	dnsZone.Initialize(*originPtr, *primaryNameServerPtr, *emailPtr)
+	dnsZone.Initialize(*ipPtr, *originPtr, *primaryNameServerPtr, *emailPtr)
 
 	restServer := rest.HandyDnsRestServer{
 		&dnsZone,

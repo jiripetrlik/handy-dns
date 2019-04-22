@@ -1,6 +1,12 @@
 package dnszone
 
+import (
+	"bytes"
+	"text/template"
+)
+
 type DNSZoneData struct {
+	IP                string
 	Origin            string
 	PrimaryNameServer string
 	HostmasterEmail   string
@@ -21,8 +27,9 @@ type ZoneItem struct {
 	Data     string
 }
 
-func NewDNSZoneData(origin string, primaryNameServer string, hostmasterEmail string) DNSZoneData {
+func NewDNSZoneData(ip string, origin string, primaryNameServer string, hostmasterEmail string) DNSZoneData {
 	zoneData := DNSZoneData{
+		IP:                ip,
 		Origin:            origin,
 		PrimaryNameServer: primaryNameServer,
 		HostmasterEmail:   hostmasterEmail,
@@ -37,3 +44,24 @@ func NewDNSZoneData(origin string, primaryNameServer string, hostmasterEmail str
 
 	return zoneData
 }
+
+func (data *DNSZoneData) zoneFileHeader() string {
+	t, _ := template.New("header").Parse(zoneFileHeaderTemplate)
+	var tmpBuffer bytes.Buffer
+	t.Execute(&tmpBuffer, *data)
+
+	return tmpBuffer.String()
+}
+
+const zoneFileHeaderTemplate = `
+$ORIGIN {{.Origin}}
+@                      3600 SOA   {{.PrimaryNameServer}}.{{.Origin}} {{.HostmasterEmail}} (
+                              {{.SerialNumber}}
+                              {{.Refresh}}
+                              {{.Retry}}
+                              {{.Expire}}
+                              {{.TTL}})
+
+	IN	NS	{{.PrimaryNameServer}}.{{.Origin}}
+{{.PrimaryNameServer}}	IN	A	{{.IP}}
+`

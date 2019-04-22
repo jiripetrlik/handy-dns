@@ -1,5 +1,7 @@
 FROM alpine:latest
 
+ENV DNS_ZONE /dns-conf/domain.hosts
+
 RUN apk add bind
 COPY start.sh /start.sh
 VOLUME /dns-conf
