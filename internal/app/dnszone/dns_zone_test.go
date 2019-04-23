@@ -1,26 +1,44 @@
 package dnszone
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
 )
 
-func tmpFile(prefix string) string {
-	file, _ := ioutil.TempFile("", prefix)
+func tmpFile(prefix string) (string, error) {
+	file, err := ioutil.TempFile("", prefix)
+	if err != nil {
+		return "", fmt.Errorf("Unable to create temporary file %v. Caused by %v", file.Name(), err.Error())
+	}
 	file.Close()
-
-	return file.Name()
-}
-
-func createTestDNSZone() DNSZone {
-	dnsZone := DNSZone{
-		ZoneFile:     tmpFile("test-zone-file-"),
-		ZoneDataFile: tmpFile("test-zone-data-"),
+	err = os.Remove(file.Name())
+	if err != nil {
+		return "", fmt.Errorf("Unable to delete temporary file %v. Caused by %v", file.Name(), err.Error())
 	}
 
-	return dnsZone
+	return file.Name(), nil
+}
+
+func createTestDNSZone() (*DNSZone, error) {
+	tmpZoneFile, err := tmpFile("test-zone-file-")
+	if err != nil {
+		return nil, fmt.Errorf("Unable to create test-zone-* tmp file. Caused by %v", err.Error())
+	}
+	tmpZoneDataFile, err := tmpFile("test-zone-data-")
+	if err != nil {
+		return nil, fmt.Errorf("Unable to create test-zone-data-* tmp file. Caused by %v", err.Error())
+	}
+
+	dnsZone := DNSZone{
+		ZoneFile:     tmpZoneFile,
+		ZoneDataFile: tmpZoneDataFile,
+	}
+	dnsZone.Initialize("127.0.0.1", "test-domain.", "ns1", "email.test-domain.")
+
+	return &dnsZone, nil
 }
 
 func deleteTestDNSZone(zone *DNSZone) {
@@ -53,8 +71,11 @@ func createTestItemsList() []ZoneItem {
 }
 
 func TestAddZoneItem(t *testing.T) {
-	dnsZone := createTestDNSZone()
-	defer deleteTestDNSZone(&dnsZone)
+	dnsZone, err := createTestDNSZone()
+	if err != nil {
+		t.Errorf("Unable to create test DNSZone. Caused by %v", err.Error())
+	}
+	defer deleteTestDNSZone(dnsZone)
 
 	testItemsList := createTestItemsList()
 	for _, item := range testItemsList {
@@ -81,8 +102,11 @@ func TestAddZoneItem(t *testing.T) {
 
 func TestUpdateZoneItem(t *testing.T) {
 	newText := "new-text"
-	dnsZone := createTestDNSZone()
-	defer deleteTestDNSZone(&dnsZone)
+	dnsZone, err := createTestDNSZone()
+	if err != nil {
+		t.Errorf("Unable to create test DNSZone. Caused by %v", err.Error())
+	}
+	defer deleteTestDNSZone(dnsZone)
 
 	testItemsList := createTestItemsList()
 	oldText := testItemsList[2].Name
@@ -109,8 +133,11 @@ func TestUpdateZoneItem(t *testing.T) {
 }
 
 func TestDeleteZoneItem(t *testing.T) {
-	dnsZone := createTestDNSZone()
-	defer deleteTestDNSZone(&dnsZone)
+	dnsZone, err := createTestDNSZone()
+	if err != nil {
+		t.Errorf("Unable to create test DNSZone. Caused by %v", err.Error())
+	}
+	defer deleteTestDNSZone(dnsZone)
 
 	testItemsList := createTestItemsList()
 	for _, item := range testItemsList {

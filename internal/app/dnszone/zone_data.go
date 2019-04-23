@@ -2,6 +2,7 @@ package dnszone
 
 import (
 	"bytes"
+	"log"
 	"text/template"
 )
 
@@ -46,9 +47,15 @@ func NewDNSZoneData(ip string, origin string, primaryNameServer string, hostmast
 }
 
 func (data *DNSZoneData) zoneFileHeader() string {
-	t, _ := template.New("header").Parse(zoneFileHeaderTemplate)
+	t, err := template.New("header").Parse(zoneFileHeaderTemplate)
+	if err != nil {
+		log.Fatal("Unable to parse zone file header template. Caused by " + err.Error())
+	}
 	var tmpBuffer bytes.Buffer
-	t.Execute(&tmpBuffer, *data)
+	err = t.Execute(&tmpBuffer, *data)
+	if err != nil {
+		log.Fatal("Unable to process zone file header template. Caused by " + err.Error())
+	}
 
 	return tmpBuffer.String()
 }
