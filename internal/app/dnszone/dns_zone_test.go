@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"sync"
 	"testing"
 )
 
@@ -35,6 +36,7 @@ func createTestDNSZone() (*DNSZone, error) {
 	dnsZone := DNSZone{
 		ZoneFile:     tmpZoneFile,
 		ZoneDataFile: tmpZoneDataFile,
+		Mutex:        &sync.Mutex{},
 	}
 	dnsZone.Initialize("127.0.0.1", "test-domain.", "ns1", "email.test-domain.")
 

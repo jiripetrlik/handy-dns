@@ -4,6 +4,7 @@ import (
 	"flag"
 	"log"
 	"net/http"
+	"sync"
 
 	"github.com/jiripetrlik/handy-dns/internal/app/dnszone"
 	"github.com/jiripetrlik/handy-dns/internal/app/rest"
@@ -28,6 +29,7 @@ func main() {
 	dnsZone := dnszone.DNSZone{
 		*dnszonePtr,
 		*zoneDataPtr,
+		&sync.Mutex{},
 	}
 	dnsZone.Initialize(*ipPtr, *originPtr, *primaryNameServerPtr, *emailPtr)
 

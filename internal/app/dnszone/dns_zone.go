@@ -6,14 +6,19 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"sync"
 )
 
 type DNSZone struct {
 	ZoneFile     string
 	ZoneDataFile string
+	Mutex        *sync.Mutex
 }
 
 func (z *DNSZone) Initialize(ip string, origin string, primaryNameServer string, hostmasterEmail string) {
+	z.Mutex.Lock()
+	defer z.Mutex.Unlock()
+
 	_, err := os.Stat(z.ZoneDataFile)
 	if os.IsNotExist(err) {
 		dnsZoneDataDNSZoneData := NewDNSZoneData(ip, origin, primaryNameServer, hostmasterEmail)
@@ -23,12 +28,18 @@ func (z *DNSZone) Initialize(ip string, origin string, primaryNameServer string,
 }
 
 func (z *DNSZone) GetZoneData() DNSZoneData {
+	z.Mutex.Lock()
+	defer z.Mutex.Unlock()
+
 	dnsZoneData := z.readZoneData()
 
 	return dnsZoneData
 }
 
 func (z *DNSZone) AddZoneItem(item ZoneItem) int64 {
+	z.Mutex.Lock()
+	defer z.Mutex.Unlock()
+
 	dnsZoneData := z.readZoneData()
 	item.ID = dnsZoneData.ItemIndex
 	dnsZoneData.ItemIndex++
@@ -40,6 +51,9 @@ func (z *DNSZone) AddZoneItem(item ZoneItem) int64 {
 }
 
 func (z *DNSZone) UpdateZoneItem(item ZoneItem) error {
+	z.Mutex.Lock()
+	defer z.Mutex.Unlock()
+
 	dnsZoneData := z.readZoneData()
 
 	_, oldItem, err := findItem(item.ID, dnsZoneData.ZoneItems)
@@ -58,6 +72,9 @@ func (z *DNSZone) UpdateZoneItem(item ZoneItem) error {
 }
 
 func (z *DNSZone) DeleteZoneItem(id int64) error {
+	z.Mutex.Lock()
+	defer z.Mutex.Unlock()
+
 	dnsZoneData := z.readZoneData()
 
 	index, _, err := findItem(id, dnsZoneData.ZoneItems)
