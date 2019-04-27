@@ -38,5 +38,8 @@ func main() {
 	}
 
 	restServer.HandleRestAPI()
-	http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(":8080", nil)
+	if err != nil {
+		log.Fatal("Error while starting HTTP. Caused by " + err.Error())
+	}
 }
