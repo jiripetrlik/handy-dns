@@ -33,10 +33,10 @@ server with zone file managed by DNS manager:
 docker volume create dns-config
 
 # Run DNS manager for "example-domain"
-docker run -d --name handy-dns-manager -e "DNS_IP=dns-server-ip" -e "ORIGIN=example-domain." --mount 'type=volume,src=dns-config,dst=/dns-conf' -p 8080:8080 handy-dns-manager
+docker run -d --name handy-dns-manager -e "DNS_IP=dns-server-ip" -e "ORIGIN=example-domain." --mount 'type=volume,src=dns-config,dst=/dns-conf' -p 8080:8080 jiripetrlik/handy-dns-manager
 
 # Run DNS server
-docker run -d --name handy-dns-server -e "DOMAIN_NAME=example-domain" --mount 'type=volume,src=dns-config,dst=/dns-conf' -p 53:53 handy-dns-server
+docker run -d --name handy-dns-server -e "DOMAIN_NAME=example-domain" --mount 'type=volume,src=dns-config,dst=/dns-conf' -p 53:53 jiripetrlik/handy-dns-server
 ```
 
 ### Net tools image
