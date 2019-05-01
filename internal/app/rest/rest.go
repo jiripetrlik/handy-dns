@@ -57,9 +57,18 @@ func (s *HandyDnsRestServer) endpointCreateItem(writer http.ResponseWriter, requ
 		Data:     request.URL.Query().Get("data"),
 	}
 
-	s.DNSZone.AddZoneItem(item)
-
-	log.Printf("Item %v was created with id %v", item, item.ID)
+	id := s.DNSZone.AddZoneItem(item)
+	idJSON, err := json.Marshal(id)
+	if err != nil {
+		return &appError{
+			Error:   err,
+			Message: "Can not marshal item id. Caused by " + err.Error(),
+			Code:    500,
+		}
+	}
+	writer.Header().Set("Content-Type", "text/json")
+	io.WriteString(writer, string(idJSON))
+	log.Printf("Item %v was created with id %v", item, id)
 	return nil
 }
 
@@ -137,6 +146,16 @@ func (s *HandyDnsRestServer) endpointDeleteItem(writer http.ResponseWriter, requ
 		}
 	}
 
+	idJSON, err := json.Marshal(id)
+	if err != nil {
+		return &appError{
+			Error:   err,
+			Message: "Can not marshal item id. Caused by " + err.Error(),
+			Code:    500,
+		}
+	}
+	writer.Header().Set("Content-Type", "text/json")
+	io.WriteString(writer, string(idJSON))
 	log.Printf("Item %v was deleted", id)
 	return nil
 }
