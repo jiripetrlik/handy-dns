@@ -104,7 +104,7 @@ func (z *DNSZone) readZoneData() DNSZoneData {
 }
 
 func (z *DNSZone) writeZoneData(dnsZoneData DNSZoneData) {
-	data, err := json.Marshal(dnsZoneData)
+	data, err := json.MarshalIndent(dnsZoneData, "", "\t")
 	if err != nil {
 		log.Fatal("Unable to marshall zone data. Caused by " + err.Error())
 	}
