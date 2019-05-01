@@ -33,7 +33,7 @@ func (fn appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (s *HandyDnsRestServer) endpointListItems(writer http.ResponseWriter, request *http.Request) *appError {
 	itemsList := s.DNSZone.GetZoneData().ZoneItems
-	itemsListJSON, err := json.Marshal(itemsList)
+	itemsListJSON, err := json.MarshalIndent(itemsList, "", "\t")
 	if err != nil {
 		return &appError{
 			Error:   err,
@@ -58,7 +58,7 @@ func (s *HandyDnsRestServer) endpointCreateItem(writer http.ResponseWriter, requ
 	}
 
 	id := s.DNSZone.AddZoneItem(item)
-	idJSON, err := json.Marshal(id)
+	idJSON, err := json.MarshalIndent(id, "", "\t")
 	if err != nil {
 		return &appError{
 			Error:   err,
@@ -105,7 +105,7 @@ func (s *HandyDnsRestServer) endpointUpdateItem(writer http.ResponseWriter, requ
 		}
 	}
 
-	jsonItem, err := json.Marshal(item)
+	jsonItem, err := json.MarshalIndent(item, "", "\t")
 	if err != nil {
 		return &appError{
 			Error:   err,
@@ -146,7 +146,7 @@ func (s *HandyDnsRestServer) endpointDeleteItem(writer http.ResponseWriter, requ
 		}
 	}
 
-	idJSON, err := json.Marshal(id)
+	idJSON, err := json.MarshalIndent(id, "", "\t")
 	if err != nil {
 		return &appError{
 			Error:   err,
