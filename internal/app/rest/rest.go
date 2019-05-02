@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jiripetrlik/handy-dns/internal/app/dnszone"
+	"github.com/jiripetrlik/handy-dns-manager/internal/app/dnszone"
 )
 
 type HandyDnsRestServer struct {

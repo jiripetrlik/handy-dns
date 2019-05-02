@@ -10,8 +10,8 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/jiripetrlik/handy-dns/internal/app/dnszone"
-	"github.com/jiripetrlik/handy-dns/internal/app/rest"
+	"github.com/jiripetrlik/handy-dns-manager/internal/app/dnszone"
+	"github.com/jiripetrlik/handy-dns-manager/internal/app/rest"
 )
 
 func main() {
@@ -54,13 +54,13 @@ func main() {
 		log.Print("Closing server")
 
 		if err := srv.Shutdown(context.Background()); err != nil {
-			log.Fatal("HTTP server Shutdown: %v", err)
+			log.Fatal("HTTP server Shutdown: " + err.Error())
 		}
 		close(idleConnsClosed)
 	}()
 
 	if err := srv.ListenAndServe(); err != http.ErrServerClosed {
-		log.Fatal("HTTP server ListenAndServe: %v", err)
+		log.Fatal("HTTP server ListenAndServe: " + err.Error())
 	}
 
 	<-idleConnsClosed
