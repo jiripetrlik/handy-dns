@@ -1,10 +1,14 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 
 	"github.com/jiripetrlik/handy-dns/internal/app/dnszone"
 	"github.com/jiripetrlik/handy-dns/internal/app/rest"
@@ -38,8 +42,26 @@ func main() {
 	}
 
 	restServer.HandleRestAPI()
-	err := http.ListenAndServe(":8080", nil)
-	if err != nil {
-		log.Fatal("Error while starting HTTP. Caused by " + err.Error())
+
+	var srv http.Server
+	srv.Addr = ":8080"
+	idleConnsClosed := make(chan struct{})
+	go func() {
+		sigs := make(chan os.Signal, 1)
+		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+		log.Print("Registering handler for graceful termination")
+		<-sigs
+		log.Print("Closing server")
+
+		if err := srv.Shutdown(context.Background()); err != nil {
+			log.Fatal("HTTP server Shutdown: %v", err)
+		}
+		close(idleConnsClosed)
+	}()
+
+	if err := srv.ListenAndServe(); err != http.ErrServerClosed {
+		log.Fatal("HTTP server ListenAndServe: %v", err)
 	}
+
+	<-idleConnsClosed
 }
