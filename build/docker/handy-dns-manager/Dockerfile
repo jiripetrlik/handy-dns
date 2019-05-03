@@ -1,5 +1,7 @@
 FROM golang:1.12-alpine as builder
 
+RUN apk update && apk add git openssh && rm -rf /var/cache/apk/*
+
 WORKDIR /handy-dns
 COPY . .
 
