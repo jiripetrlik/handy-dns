@@ -1,5 +1,5 @@
 FROM ubuntu:latest
 
-RUN apt-get update
-RUN apt-get install -y curl inetutils-ping net-tools dnsutils traceroute ssh telnet less vim mc
-
+RUN apt-get update \
+    && apt-get install -y curl inetutils-ping net-tools dnsutils traceroute ssh telnet less vim mc \
+    && rm -rf /var/lib/apt/lists/*
