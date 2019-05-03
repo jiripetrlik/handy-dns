@@ -9,10 +9,12 @@ import (
 	"strings"
 
 	"github.com/jiripetrlik/handy-dns-manager/internal/app/dnszone"
+	auth "github.com/abbot/go-http-auth"
 )
 
 type HandyDnsRestServer struct {
 	DNSZone *dnszone.DNSZone
+	authenticator *auth.BasicAuth
 }
 
 type appError struct {
@@ -23,6 +25,21 @@ type appError struct {
 
 type appHandler func(http.ResponseWriter, *http.Request) *appError
 
+func NewHandyDNSRestServer(dnsZone *dnszone.DNSZone, htpasswd string) *HandyDnsRestServer {
+	var authenticator *auth.BasicAuth
+	if len(htpasswd) > 0 {
+		htpasswd := auth.HtpasswdFileProvider(htpasswd)
+		authenticator = auth.NewBasicAuthenticator("Handy DNS Realm", htpasswd)
+	}
+
+	server := HandyDnsRestServer{
+		DNSZone: dnsZone,
+		authenticator: authenticator,
+	}
+
+	return &server
+}
+
 func (fn appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	err := fn(w, r)
 	if err != nil {
@@ -31,7 +48,29 @@ func (fn appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (s *HandyDnsRestServer) isAllowed(request *http.Request) bool {
+	if s.authenticator == nil {
+		return true
+	}
+
+	if len(s.authenticator.CheckAuth(request)) > 0 {
+		return true
+	}
+
+	return false
+}
+
+func denyAccess(writer http.ResponseWriter) {
+	writer.WriteHeader(http.StatusUnauthorized)
+	writer.Write([]byte("Unauthorized"))
+}
+
 func (s *HandyDnsRestServer) endpointListItems(writer http.ResponseWriter, request *http.Request) *appError {
+	if s.isAllowed(request) == false {
+		denyAccess(writer)
+		return nil
+	}
+
 	itemsList := s.DNSZone.GetZoneData().ZoneItems
 	itemsListJSON, err := json.MarshalIndent(itemsList, "", "\t")
 	if err != nil {
@@ -49,6 +88,11 @@ func (s *HandyDnsRestServer) endpointListItems(writer http.ResponseWriter, reque
 }
 
 func (s *HandyDnsRestServer) endpointCreateItem(writer http.ResponseWriter, request *http.Request) *appError {
+	if s.isAllowed(request) == false {
+		denyAccess(writer)
+		return nil
+	}
+
 	item := dnszone.ZoneItem{
 		ID:       0,
 		Name:     request.URL.Query().Get("name"),
@@ -73,6 +117,11 @@ func (s *HandyDnsRestServer) endpointCreateItem(writer http.ResponseWriter, requ
 }
 
 func (s *HandyDnsRestServer) endpointUpdateItem(writer http.ResponseWriter, request *http.Request) *appError {
+	if s.isAllowed(request) == false {
+		denyAccess(writer)
+		return nil
+	}
+
 	id, err := strconv.ParseInt(request.URL.Query().Get("id"), 10, 64)
 	if err != nil {
 		return &appError{
@@ -121,6 +170,11 @@ func (s *HandyDnsRestServer) endpointUpdateItem(writer http.ResponseWriter, requ
 }
 
 func (s *HandyDnsRestServer) endpointDeleteItem(writer http.ResponseWriter, request *http.Request) *appError {
+	if s.isAllowed(request) == false {
+		denyAccess(writer)
+		return nil
+	}
+
 	id, err := strconv.ParseInt(request.URL.Query().Get("id"), 10, 64)
 	if err != nil {
 		return &appError{

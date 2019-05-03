@@ -21,6 +21,7 @@ func main() {
 	emailPtr := flag.String("e", "email.example-domain.", "Hostmaster email")
 	dnszonePtr := flag.String("f", "example-domain.hosts", "Zone file")
 	zoneDataPtr := flag.String("d", "example-domain.json", "Data about zone")
+	htpasswdPtr := flag.String("s", "", "Htpasswd file")
 	flag.Parse()
 
 	log.Printf(
@@ -37,10 +38,7 @@ func main() {
 	}
 	dnsZone.Initialize(*ipPtr, *originPtr, *primaryNameServerPtr, *emailPtr)
 
-	restServer := rest.HandyDnsRestServer{
-		&dnsZone,
-	}
-
+	restServer := rest.NewHandyDNSRestServer(&dnsZone, *htpasswdPtr)
 	restServer.HandleRestAPI()
 
 	var srv http.Server
