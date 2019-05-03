@@ -22,6 +22,8 @@ func main() {
 	dnszonePtr := flag.String("f", "example-domain.hosts", "Zone file")
 	zoneDataPtr := flag.String("d", "example-domain.json", "Data about zone")
 	htpasswdPtr := flag.String("s", "", "Htpasswd file")
+	certFilePtr := flag.String("certfile", "", "Cert file")
+	keyFilePtr := flag.String("keyfile", "", "Key file")
 	flag.Parse()
 
 	log.Printf(
@@ -42,7 +44,6 @@ func main() {
 	restServer.HandleRestAPI()
 
 	var srv http.Server
-	srv.Addr = ":8080"
 	idleConnsClosed := make(chan struct{})
 	go func() {
 		sigs := make(chan os.Signal, 1)
@@ -57,7 +58,15 @@ func main() {
 		close(idleConnsClosed)
 	}()
 
-	if err := srv.ListenAndServe(); err != http.ErrServerClosed {
+	var err error
+	if len(*certFilePtr) > 0 && len(*keyFilePtr) > 0 {
+		srv.Addr = ":8443"
+		err = srv.ListenAndServeTLS(*certFilePtr, *keyFilePtr)
+	} else {
+		srv.Addr = ":8080"
+		err = srv.ListenAndServe()
+	}
+	if err != http.ErrServerClosed {
 		log.Fatal("HTTP server ListenAndServe: " + err.Error())
 	}
 
