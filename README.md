@@ -24,7 +24,7 @@ Parameters:
 
 ### DNS Manager image
 
-DNS manager is an application written in GO which provides simple REST API
+DNS manager is an application written in Go which provides simple REST API
 to manage DNS zone file. Use following commands to run iterative DNS
 server with zone file managed by DNS manager:
 
@@ -38,6 +38,16 @@ docker run -d --name handy-dns-manager -e "DNS_IP=dns-server-ip" -e "ORIGIN=exam
 # Run DNS server
 docker run -d --name handy-dns-server -e "DOMAIN_NAME=example-domain" --mount 'type=volume,src=dns-config,dst=/dns-conf' -p 53:53 jiripetrlik/handy-dns-server
 ```
+
+#### Additional parameters
+* -d ... JSON file with data about DNS zone
+* -e ... Hostmaster email (for example: email.example-domain.)
+* -f ... Zone file
+* -i ... IP of primary nameserver
+* -o ... Domain origin
+* -s ... Htpasswd file
+* -certfile ... Cert file for HTTPS
+* -keyfile ... Key file for HTTPS
 
 ### Net tools image
 
