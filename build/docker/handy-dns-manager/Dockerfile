@@ -18,4 +18,6 @@ ENV EMAIL email.example-domain.
 ENV DNS_ZONE /dns-conf/domain.hosts
 ENV ZONE_DATA /dns-conf/zone-data.json
 
-CMD exec /handy-dns-manager -i "$DNS_IP" -o "$ORIGIN" -p "$PRIMARY_NAME_SERVER" -e "$EMAIL" -f "$DNS_ZONE" -d "$ZONE_DATA"
+CMD exec /handy-dns-manager -i "$DNS_IP" -o "$ORIGIN" -p "$PRIMARY_NAME_SERVER" \
+     -e "$EMAIL" -f "$DNS_ZONE" -d "$ZONE_DATA" -s "$HTPASSWD" \
+     -certfile "$CERT_FILE" -keyfile "$KEY_FILE"
