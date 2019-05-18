@@ -1,0 +1,36 @@
+version: '3.7'
+services:
+  dns-server:
+    image: jiripetrlik/handy-dns-server
+    environment:
+      DOMAIN_NAME: ${DOMAIN_NAME}
+      DNS_ZONE: ${DNS_ZONE}
+    ports:
+    - "53:53"
+    volumes:
+      - type: volume
+        source: dns-conf
+        target: /dns-conf
+        volume:
+          nocopy: true
+  dns-manager:
+    image: jiripetrlik/handy-dns-manager
+    environment:
+      ZONE_DATA: ${ZONE_DATA}
+      EMAIL: ${EMAIL}
+      DNS_ZONE: ${DNS_ZONE}
+      PRIMARY_NAME_SERVER: ${PRIMARY_NAME_SERVER}
+      ORIGIN: ${DOMAIN_NAME}.
+      HTPASSWD: ${HTPASSWD}
+      CERT_FILE: ${CERT_FILE}
+      KEY_FILE: ${KEY_FILE}
+    ports:
+    - "8080:8080"
+    volumes:
+      - type: volume
+        source: dns-conf
+        target: /dns-conf
+        volume:
+          nocopy: true
+volumes:
+  dns-conf:
