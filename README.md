@@ -39,15 +39,15 @@ docker run -d --name handy-dns-manager -e "DNS_IP=dns-server-ip" -e "ORIGIN=exam
 docker run -d --name handy-dns-server -e "DOMAIN_NAME=example-domain" --mount 'type=volume,src=dns-config,dst=/dns-conf' -p 53:53 jiripetrlik/handy-dns-server
 ```
 
-#### Additional parameters
-* -d ... JSON file with data about DNS zone
-* -e ... Hostmaster email (for example: email.example-domain.)
-* -f ... Zone file
-* -i ... IP of primary nameserver
-* -o ... Domain origin
-* -s ... Htpasswd file
-* -certfile ... Cert file for HTTPS
-* -keyfile ... Key file for HTTPS
+#### Additional environment variables
+* ZONE_DATA ... JSON file with data about DNS zone (default value: /dns-conf/zone-data.json)
+* EMAIL ... Hostmaster email (default value: email.example-domain.)
+* DNS_ZONE ... Zone file (default value: /dns-conf/domain.hosts)
+* PRIMARY_NAME_SERVER ... name of primary nameserver (default value: ns1)
+* ORIGIN ... Domain origin (default value: example-domain.)
+* HTPASSWD ... Htpasswd file
+* CERT_FILE ... Cert file for HTTPS
+* KEY_FILE ... Key file for HTTPS
 
 ### Net tools image
 
