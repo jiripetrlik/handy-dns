@@ -2,7 +2,7 @@
 
 set -e
 
-if [ ! -z "/dns-conf/named.conf" ]; then
+if [ ! -f "/dns-conf/named.conf" ]; then
    if [ -n "$DOMAIN_NAME" ]; then
       cp /etc/bind/named.conf.authoritative /dns-conf/named.conf
       sed -i 's/127.0.0.1;/any;/' /dns-conf/named.conf
@@ -17,4 +17,5 @@ if [ ! -z "/dns-conf/named.conf" ]; then
    fi
 fi
 
+/reload.sh &
 exec /usr/sbin/named -c /dns-conf/named.conf -d 1 -f
