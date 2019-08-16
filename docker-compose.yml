@@ -6,7 +6,7 @@ services:
       DOMAIN_NAME: ${DOMAIN_NAME}
       DNS_ZONE: ${DNS_ZONE}
     ports:
-    - "53:53"
+    - "53:53/udp"
     volumes:
       - type: volume
         source: dns-conf

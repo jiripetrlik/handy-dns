@@ -11,7 +11,7 @@ possible modes - recursive and iterative. Recursive mode is enabled
 by default if no parameters are specified.
 ```
 # Run recursive DNS server
-docker run -d --name handy-dns-server -p 53:53 jiripetrlik/handy-dns-server
+docker run -d --name handy-dns-server -p 53:53/udp jiripetrlik/handy-dns-server
 ```
 
 In iterative mode the DNS server works as authoritative for specific zone.
@@ -36,7 +36,7 @@ docker volume create dns-config
 docker run -d --name handy-dns-manager -e "DNS_IP=dns-server-ip" -e "ORIGIN=example-domain." --mount 'type=volume,src=dns-config,dst=/dns-conf' -p 8080:8080 jiripetrlik/handy-dns-manager
 
 # Run DNS server
-docker run -d --name handy-dns-server -e "DOMAIN_NAME=example-domain" --mount 'type=volume,src=dns-config,dst=/dns-conf' -p 53:53 jiripetrlik/handy-dns-server
+docker run -d --name handy-dns-server -e "DOMAIN_NAME=example-domain" --mount 'type=volume,src=dns-config,dst=/dns-conf' -p 53:53/udp jiripetrlik/handy-dns-server
 ```
 
 #### Additional environment variables
