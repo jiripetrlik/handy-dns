@@ -82,6 +82,17 @@ curl "http://localhost:8080/api/update?id=1&name=machine5&class=IN&itemType=A&da
 curl "http://localhost:8080/api/delete?id=1"
 ```
 
+## Docker Compose
+
+It is possible to run DNS server together with DNS manager using Docker Compose.
+Additional parameters are the same as in Docker images.
+
+```
+cd handy-dns
+export DOMAIN_NAME=mydomain
+docker-compose up
+```
+
 ## Building Docker images
 
 ```
