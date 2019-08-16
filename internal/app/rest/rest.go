@@ -10,6 +10,8 @@ import (
 
 	"github.com/jiripetrlik/handy-dns-manager/internal/app/dnszone"
 	auth "github.com/abbot/go-http-auth"
+	"github.com/rakyll/statik/fs"
+	_ "github.com/jiripetrlik/handy-dns-manager/statik"
 )
 
 type HandyDnsRestServer struct {
@@ -219,4 +221,12 @@ func (s *HandyDnsRestServer) HandleRestAPI() {
 	http.Handle("/api/create", appHandler(s.endpointCreateItem))
 	http.Handle("/api/update", appHandler(s.endpointUpdateItem))
 	http.Handle("/api/delete", appHandler(s.endpointDeleteItem))
+
+	statikFS, err := fs.New()
+	if err != nil {
+	    panic(err)
+	}
+	staticServer := http.FileServer(statikFS)
+	sh := http.StripPrefix("/swaggerui/", staticServer)
+	http.Handle("/swaggerui/", sh)
 }

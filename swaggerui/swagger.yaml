@@ -1,0 +1,105 @@
+swagger: "2.0"
+info:
+  description: "API for Handy DNS Manager"
+  version: "0.0.1"
+  title: "Handy DNS Manager API"
+basePath: "/api"
+schemes:
+- "http"
+- "https"
+paths:
+  /list:
+    get:
+      tags:
+      - "DNS"
+      summary: "List zone items"
+      responses:
+        200:
+          description: "successful operation"
+  /create:
+    post:
+      tags:
+      - "DNS"
+      summary: "Add zone item"
+      parameters:
+      - name: "name"
+        in: "query"
+        description: "Zone item name (example: machine1)"
+        required: true
+        type: "string"
+      - name: "class"
+        in: "query"
+        description: "Zone item class (example: IN)"
+        required: true
+        type: "string"
+      - name: "itemType"
+        in: "query"
+        description: "Zone item type (example: A)"
+        required: true
+        type: "string"
+      - name: "data"
+        in: "query"
+        description: "Zone item data (example: 10.0.0.1)"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Item was successfully created"
+        500:
+          description: "Error creating item"
+  /update:
+    put:
+      tags:
+      - "DNS"
+      summary: "Update zone item"
+      parameters:
+      - name: "id"
+        in: "query"
+        description: "Zone item id"
+        required: true
+        type: "integer"
+      - name: "name"
+        in: "query"
+        description: "Zone item name (example: machine1)"
+        required: true
+        type: "string"
+      - name: "class"
+        in: "query"
+        description: "Zone item class (example: IN)"
+        required: true
+        type: "string"
+      - name: "itemType"
+        in: "query"
+        description: "Zone item type (example: A)"
+        required: true
+        type: "string"
+      - name: "data"
+        in: "query"
+        description: "Zone item data (example: 10.0.0.1)"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Item was successfully updated"
+        404:
+          description: "Item was not found"
+        500:
+          description: "Error updating item"
+  /delete:
+    delete:
+      tags:
+      - "DNS"
+      summary: "Delete zone item"
+      parameters:
+      - name: "id"
+        in: "query"
+        description: "Zone item id"
+        required: true
+        type: "integer"
+      responses:
+        200:
+          description: "Item was successfully deleted"
+        404:
+          description: "Item was not found"
+        500:
+          description: "Error deleting item"

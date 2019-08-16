@@ -66,8 +66,11 @@ It is possible to run Docker container with nettools using following command:
 docker run -i -t --rm jiripetrlik/nettools /bin/bash
 ```
 
-## CURL examples for DNS Manager REST API
+## Examples for DNS Manager REST API
 
+Swagger UI is available in `http://localhost:8080/swaggerui`.
+
+Curl examples:
 ```
 # List items
 curl http://localhost:8080/api/list
