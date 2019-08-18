@@ -63,6 +63,7 @@ func (s *HandyDnsRestServer) isAllowed(request *http.Request) bool {
 }
 
 func denyAccess(writer http.ResponseWriter) {
+	writer.Header().Set("WWW-Authenticate", "Basic")
 	writer.WriteHeader(http.StatusUnauthorized)
 	writer.Write([]byte("Unauthorized"))
 }
