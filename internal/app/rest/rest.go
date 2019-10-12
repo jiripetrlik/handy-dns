@@ -8,14 +8,17 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jiripetrlik/handy-dns-manager/internal/app/dnszone"
 	auth "github.com/abbot/go-http-auth"
-	"github.com/rakyll/statik/fs"
+	"github.com/jiripetrlik/handy-dns-manager/internal/app/dnszone"
 	_ "github.com/jiripetrlik/handy-dns-manager/statik"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/rakyll/statik/fs"
 )
 
 type HandyDnsRestServer struct {
-	DNSZone *dnszone.DNSZone
+	DNSZone       *dnszone.DNSZone
 	authenticator *auth.BasicAuth
 }
 
@@ -27,6 +30,25 @@ type appError struct {
 
 type appHandler func(http.ResponseWriter, *http.Request) *appError
 
+type prometheusMetricsStruct struct {
+	requestCounter   prometheus.Counter
+	zoneItemsNumber  prometheus.Gauge
+	zoneSerialNumber prometheus.Gauge
+}
+
+var metricsHandler http.Handler = promhttp.Handler()
+
+var prometheusMetrics = prometheusMetricsStruct{
+	requestCounter: promauto.NewCounter(prometheus.CounterOpts{
+		Name: "request_counter",
+		Help: "Number of requests processed by app"}),
+	zoneItemsNumber: promauto.NewGauge(prometheus.GaugeOpts{
+		Name: "zone_items_number",
+		Help: "Number of items in zone file"}),
+	zoneSerialNumber: promauto.NewGauge(prometheus.GaugeOpts{
+		Name: "zone_serial_number",
+		Help: "Zone serial number"})}
+
 func NewHandyDNSRestServer(dnsZone *dnszone.DNSZone, htpasswd string) *HandyDnsRestServer {
 	var authenticator *auth.BasicAuth
 	if len(htpasswd) > 0 {
@@ -35,7 +57,7 @@ func NewHandyDNSRestServer(dnsZone *dnszone.DNSZone, htpasswd string) *HandyDnsR
 	}
 
 	server := HandyDnsRestServer{
-		DNSZone: dnsZone,
+		DNSZone:       dnsZone,
 		authenticator: authenticator,
 	}
 
@@ -87,6 +109,11 @@ func (s *HandyDnsRestServer) endpointListItems(writer http.ResponseWriter, reque
 	writer.Header().Set("Content-Type", "text/json")
 	io.WriteString(writer, string(itemsListJSON))
 	log.Printf("List with %v zone items was send", len(itemsList))
+
+	prometheusMetrics.requestCounter.Inc()
+	prometheusMetrics.zoneSerialNumber.Set(float64(s.DNSZone.GetZoneData().SerialNumber))
+	prometheusMetrics.zoneItemsNumber.Set(float64(len(s.DNSZone.GetZoneData().ZoneItems)))
+
 	return nil
 }
 
@@ -116,6 +143,11 @@ func (s *HandyDnsRestServer) endpointCreateItem(writer http.ResponseWriter, requ
 	writer.Header().Set("Content-Type", "text/json")
 	io.WriteString(writer, string(idJSON))
 	log.Printf("Item %v was created with id %v", item, id)
+
+	prometheusMetrics.requestCounter.Inc()
+	prometheusMetrics.zoneSerialNumber.Set(float64(s.DNSZone.GetZoneData().SerialNumber))
+	prometheusMetrics.zoneItemsNumber.Set(float64(len(s.DNSZone.GetZoneData().ZoneItems)))
+
 	return nil
 }
 
@@ -169,6 +201,11 @@ func (s *HandyDnsRestServer) endpointUpdateItem(writer http.ResponseWriter, requ
 	io.WriteString(writer, string(jsonItem))
 
 	log.Printf("Item %v was updated", item)
+
+	prometheusMetrics.requestCounter.Inc()
+	prometheusMetrics.zoneSerialNumber.Set(float64(s.DNSZone.GetZoneData().SerialNumber))
+	prometheusMetrics.zoneItemsNumber.Set(float64(len(s.DNSZone.GetZoneData().ZoneItems)))
+
 	return nil
 }
 
@@ -214,6 +251,22 @@ func (s *HandyDnsRestServer) endpointDeleteItem(writer http.ResponseWriter, requ
 	writer.Header().Set("Content-Type", "text/json")
 	io.WriteString(writer, string(idJSON))
 	log.Printf("Item %v was deleted", id)
+
+	prometheusMetrics.requestCounter.Inc()
+	prometheusMetrics.zoneSerialNumber.Set(float64(s.DNSZone.GetZoneData().SerialNumber))
+	prometheusMetrics.zoneItemsNumber.Set(float64(len(s.DNSZone.GetZoneData().ZoneItems)))
+
+	return nil
+}
+
+func (s *HandyDnsRestServer) endpointMetrics(writer http.ResponseWriter, request *http.Request) *appError {
+	if s.isAllowed(request) == false {
+		denyAccess(writer)
+		return nil
+	}
+
+	metricsHandler.ServeHTTP(writer, request)
+
 	return nil
 }
 
@@ -223,9 +276,13 @@ func (s *HandyDnsRestServer) HandleRestAPI() {
 	http.Handle("/api/update", appHandler(s.endpointUpdateItem))
 	http.Handle("/api/delete", appHandler(s.endpointDeleteItem))
 
+	prometheusMetrics.zoneSerialNumber.Set(float64(s.DNSZone.GetZoneData().SerialNumber))
+	prometheusMetrics.zoneItemsNumber.Set(float64(len(s.DNSZone.GetZoneData().ZoneItems)))
+	http.Handle("/metrics", appHandler(s.endpointMetrics))
+
 	statikFS, err := fs.New()
 	if err != nil {
-	    panic(err)
+		panic(err)
 	}
 	staticServer := http.FileServer(statikFS)
 	sh := http.StripPrefix("/swaggerui/", staticServer)
