@@ -44,6 +44,7 @@ func (z *DNSZone) AddZoneItem(item ZoneItem) int64 {
 	item.ID = dnsZoneData.ItemIndex
 	dnsZoneData.ItemIndex++
 	dnsZoneData.ZoneItems = append(dnsZoneData.ZoneItems, item)
+	dnsZoneData.SerialNumber++
 	z.writeZoneData(dnsZoneData)
 	z.writeZoneFile()
 
@@ -65,6 +66,8 @@ func (z *DNSZone) UpdateZoneItem(item ZoneItem) error {
 	oldItem.ItemType = item.ItemType
 	oldItem.Data = item.Data
 
+	dnsZoneData.SerialNumber++
+
 	z.writeZoneData(dnsZoneData)
 	z.writeZoneFile()
 
@@ -82,6 +85,8 @@ func (z *DNSZone) DeleteZoneItem(id int64) error {
 		return fmt.Errorf("Item %v does not exist", id)
 	}
 	dnsZoneData.ZoneItems = append(dnsZoneData.ZoneItems[:index], dnsZoneData.ZoneItems[index+1:]...)
+
+	dnsZoneData.SerialNumber++
 
 	z.writeZoneData(dnsZoneData)
 	z.writeZoneFile()
