@@ -1,6 +1,6 @@
 module github.com/jiripetrlik/handy-dns-manager
 
-go 1.12
+go 1.14
 
 require (
 	github.com/abbot/go-http-auth v0.4.0
