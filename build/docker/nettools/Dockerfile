@@ -1,5 +1,4 @@
-FROM debian:10
+FROM ubuntu:24.04
 
-RUN apt-get update \
-    && apt-get install -y curl inetutils-ping net-tools dnsutils traceroute ssh telnet less vim mc \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y curl inetutils-ping net-tools dnsutils traceroute less vim mc tcpdump iproute2 socat && rm -rf /var/lib/apt/lists/*
+
